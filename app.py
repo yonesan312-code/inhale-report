@@ -1,12 +1,16 @@
 import streamlit as st
-import google.generativeai as genai
+# インストールを待つための処理
+try:
+    import google.generativeai as genai
+except ImportError:
+    st.error("現在、道具箱をインストール中です。1分後にこの画面を更新（再読み込み）してください。")
+    st.stop()
 
-# 1. 鍵（Secrets）の読み込み
+# 鍵の読み込み
 if "GOOGLE_API_KEY" in st.secrets:
-    # 古い通信トラブルを避ける設定
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"], transport='rest')
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 else:
-    st.error("Secretsの設定がまだ完了していません。")
+    st.error("Secretsに鍵を設定してください。")
 
 st.title("🏥 Inhapi 報告支援ツール")
 
@@ -16,12 +20,11 @@ if st.button("✨ 分析を実行"):
     if not memo:
         st.warning("メモを入力してください。")
     else:
-        with st.spinner("AIが最新モデルで分析中..."):
+        with st.spinner("AIが考え中..."):
             try:
-                # 最新モデルを呼び出す
                 model = genai.GenerativeModel('gemini-1.5-flash')
-                response = model.generate_content(f"以下のメモから精神科訪問看護報告書を作成して：\n\n{memo}")
-                st.success("完了しました！")
+                response = model.generate_content(f"精神科訪問看護報告書を作成して：\n\n{memo}")
+                st.success("完了！")
                 st.write(response.text)
             except Exception as e:
-                st.error(f"エラーが発生しました: {e}")
+                st.error(f"エラー: {e}")
